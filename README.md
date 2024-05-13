@@ -1,4 +1,4 @@
-# email-mapi-automation (EXAMPLE,not all the data)
+# email-mapi-automation (EXAMPLE, not all the data)
 A small excel table in html format is received in the body of the email.
 
 We extract the data from the email, modify it and create new columns in the excel table so that the database entry is correct.
