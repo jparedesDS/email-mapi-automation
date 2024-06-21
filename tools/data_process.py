@@ -177,7 +177,8 @@ def email_employee(df):
 
 
 # Diccionario de mapeo para la función get_responsable_email()
-email_mapping = {'P-22/001': email_LB, 'P-22/002': email_LB, 'P-22/003': email_AC, 'P-22/004': email_AC,
+email_mapping = {'P-21/003': email_LB,
+                 'P-22/001': email_LB, 'P-22/002': email_LB, 'P-22/003': email_AC, 'P-22/004': email_AC,
                  'P-22/005': email_AC, 'P-22/006': email_LB, 'P-22/007': email_LB, 'P-22/008': email_AC,
                  'P-22/009': email_LB, 'P-22/010': email_AC, 'P-22/011': email_LB, 'P-22/012': email_AC,
                  'P-22/013': email_LB, 'P-22/014': email_AC, 'P-22/015': email_LB, 'P-22/016': email_LB,
@@ -240,7 +241,9 @@ email_mapping = {'P-22/001': email_LB, 'P-22/002': email_LB, 'P-22/003': email_A
                  'P-24/028': email_AC, 'P-24/029': email_AC, 'P-24/030': email_AC, 'P-24/031': email_AC,
                  'P-24/032': email_AC, 'P-24/033': email_AC, 'P-24/034': email_AC, 'P-24/035': email_AC,
                  'P-24/036': email_AC, 'P-24/037': email_AC, 'P-24/038': email_AC, 'P-24/039': email_AC,
-                 'P-24/040': email_AC, 'P-24/041': email_AC, 'P-24/042': email_AC, 'P-24/043': email_AC,}
+                 'P-24/040': email_AC, 'P-24/041': email_AC, 'P-24/042': email_AC, 'P-24/043': email_AC,
+                 'P-24/044': email_AC, 'P-24/045': email_AC, 'P-24/046': email_AC, 'P-24/047': email_AC,
+                 'P-24/048': email_AC, 'P-24/049': email_AC, 'P-24/050': email_AC, 'P-24/051': email_AC,}
 
 
 def get_responsable_email(numero_pedido):

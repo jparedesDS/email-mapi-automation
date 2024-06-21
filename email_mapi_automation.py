@@ -1,7 +1,7 @@
-""" Versión v0.9.2 - Automatización, envío, tratamiento de datos y entrada a BBDD para transmittals de Técnicas Reunidas """
+""" Versión v0.9.3 - Automatización, envío, tratamiento de datos y entrada a BBDD para transmittals de Técnicas Reunidas """
 from datetime import timedelta
 
-""" v0.9.2 - Limpieza del código para una estructura más correcta, se generan funciones en data_process.py para acortar el código, explicacion de las funciones. """
+""" v0.9.3 - Limpieza del código para una estructura más correcta, se generan funciones en data_process.py para acortar el código, explicacion de las funciones. """
 # Imports
 import time
 import shutil
@@ -51,8 +51,8 @@ email_JV = ';jorge-valtierra@eipsa.es'
 outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
 
 # Bandeja de entrada de Outlook, acceso y búsqueda de los últimos mensajes recibidos .Folders("carpeta")
-inbox = outlook.GetDefaultFolder(6).Folders["test1"]    # Quitar selección de carpeta
-messages = inbox.Items#.Restrict("[Unread]=true")    # Obligamos a solo buscar entre los emails que se encuentren aún sin leer
+inbox = outlook.GetDefaultFolder(6)#.Folders["test1"]    # Quitar selección de carpeta
+messages = inbox.Items.Restrict("[Unread]=true")    # Obligamos a solo buscar entre los emails que se encuentren aún sin leer
 messages.Sort("ReceivedTime", True)    # Ordenamos los mensajes según su entrada por tiempo
 message = messages.GetFirst()    # Selección del email
 
@@ -106,7 +106,7 @@ while message:
             ol = win32com.client.Dispatch("outlook.application")    # Conexión directa con la aplicación de Outlook.
             olmailitem = 0x0    # Tamaño del nuevo email.
             newmail = ol.CreateItem(olmailitem)    # Creación del email.
-            newmail.Subject = 'DEV. ['+subject_email+']'   # Añadimos el Asunto del email.
+            newmail.Subject = 'DEV: ['+subject_email+']'   # Añadimos el Asunto del email.
             ### Aplicamos la función que nos identifica quien es el resposable del documento ###
             df2 = email_employee(df2)
             ### Aplicar la función para generar la columna 'Responsable_email' ###
@@ -122,16 +122,16 @@ while message:
             df_final.to_excel(f'RESUMEN - ' +subject_email+ '.xlsx', index=False)    # Generamos el dataframe RESUMEN.
             aplicar_estilos_y_guardar_excel(df_final, f'RESUMEN - ' +subject_email+ '.xlsx')
             df_import = df_final.copy()     # Generamos el dataframe de IMPORTACIÓN a ERP (df_import).
-            df_import = df_import.reindex(['Documento EIPSA', 'Documento Cliente', 'Título', 'Tipo de documento', 'Rev.','Crítico', 'Estado'], axis=1)    # Estructuramos los datos del df_import.
+            df_import = df_import.reindex(['Nº Pedido', 'Suplemento', 'Cliente', 'Material', 'PO', 'Documento EIPSA', 'Documento Cliente', 'Título', 'Rev.', 'Estado', 'Fecha'], axis=1)    # Estructuramos los datos del df_import.
             df_import.to_excel(f'new_transmittal_' +str(i)+ '.xlsx', index=False)    # Generamos el dataframe de IMPORTACIÓN.
-            aplicar_estilos_y_guardar_excel(df_import, f'new_transmittal_' + str(i) + '.xlsx')
+            aplicar_estilos_y_guardar_excel(df_final, f'new_transmittal_' + str(i) + '.xlsx')
             # Exportar el DataFrame estilizado a HTML
             styled_df = aplicar_estilos_html(df_import)
             # Generamos la entrada de datos al email
             newmail.To = ';santos-sanchez@eipsa.es;' +str(df3[0][0])    # Añadimos el contacto.
             newmail.CC = ';jesus-martinez@eipsa.es;ernesto-carrillo@eipsa.es;' +(df2[0][0])    # Añadimos las personas que se encuentran en copia.
             body = styled_df.to_html()  # Volcamos el dataframe DF a HTML para la unión al email.
-            newmail.HTMLBody = ('<html><body><p>Buenos días, </p> <p>Han devuelto la siguiente documentación:</p> ' +(body)+ ' <p>DESCARGADO Y ACTUALIZADO EN ERP.</p> <p>HAY QUE SUBIRLO ANTES DEL: '+ (date+pd.DateOffset(days=15)).strftime("%d-%m-%Y") +'</p> <p>Un saludo,<br>Muchas gracias.</p> <p><b>Jose Paredes Colmenarejo <br> Dpto. de documentación <br> (+34) 91 658 21 18 <br> <A HREF="www.eipsa.es"> www.eipsa.es </A> </b> </body></html>')    # Generamos el BODYEmail e insertamos la tabla de excel
+            newmail.HTMLBody = ('<html><body><p>Buenos días, </p> <p>Han devuelto la siguiente documentación:</p> ' +(body)+ ' <p>DESCARGADO Y ACTUALIZADO EN ERP.</p> <p>HAY QUE SUBIRLO ANTES DEL: '+ (date+pd.DateOffset(days=15)).strftime("%d-%m-%Y"))#'</p> <p>Un saludo,<br>Muchas gracias.</p> <p><b>Jose Paredes Colmenarejo <br> Dpto. de documentación <br> (+34) 91 658 21 18 <br> <A HREF="www.eipsa.es"> www.eipsa.es </A> </b> </body></html>')    # Generamos el BODYEmail e insertamos la tabla de excel
             attach = 'C:\\Users\\alejandro.berzal\\Desktop\\DATA SCIENCE\\email-mapi-tools-automation\\RESUMEN - ' + subject_email + '.xlsx'    # Url para la captura del documento.
             newmail.Attachments.Add(attach)    # Adjuntar el archivo al email.
             newmail.Display()    # Visualización del email.
