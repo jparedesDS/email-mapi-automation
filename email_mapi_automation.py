@@ -27,6 +27,8 @@ if not os.path.isdir(nombre_carpeta2):
     print(f'No existe la ruta: '+nombre_carpeta2+', se crea la carpeta')
     os.mkdir(nombre_carpeta2)
 
+# Ruta del archivo Excel donde se agregarán los datos
+combine_path = 'C:\\Users\\alejandro.berzal\\Desktop\\DATA SCIENCE\\email-mapi-tools-automation\\data\\all_tr_combine.xlsx'
 # Se indica la url en la que guardaremos los archivos
 cwd = os.getcwd()    # Capturamos la url de la carpeta
 src = cwd    # Capturamos la url en una variable
@@ -51,7 +53,7 @@ email_JV = ';jorge-valtierra@eipsa.es'
 outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
 
 # Bandeja de entrada de Outlook, acceso y búsqueda de los últimos mensajes recibidos .Folders("carpeta")
-inbox = outlook.GetDefaultFolder(6)#.Folders["test1"]    # Quitar selección de carpeta
+inbox = outlook.GetDefaultFolder(6).Folders["test1"]    # Quitar selección de carpeta
 messages = inbox.Items.Restrict("[Unread]=true")    # Obligamos a solo buscar entre los emails que se encuentren aún sin leer
 messages.Sort("ReceivedTime", True)    # Ordenamos los mensajes según su entrada por tiempo
 message = messages.GetFirst()    # Selección del email
@@ -106,7 +108,7 @@ while message:
             ol = win32com.client.Dispatch("outlook.application")    # Conexión directa con la aplicación de Outlook.
             olmailitem = 0x0    # Tamaño del nuevo email.
             newmail = ol.CreateItem(olmailitem)    # Creación del email.
-            newmail.Subject = 'DEV: ['+subject_email+']'   # Añadimos el Asunto del email.
+            newmail.Subject = 'DEV: ['+subject_email+ ']'   # Añadimos el Asunto del email.
             ### Aplicamos la función que nos identifica quien es el resposable del documento ###
             df2 = email_employee(df2)
             ### Aplicar la función para generar la columna 'Responsable_email' ###
@@ -123,10 +125,18 @@ while message:
             aplicar_estilos_y_guardar_excel(df_final, f'RESUMEN - ' +subject_email+ '.xlsx')
             df_import = df_final.copy()     # Generamos el dataframe de IMPORTACIÓN a ERP (df_import).
             df_import = df_import.reindex(['Nº Pedido', 'Suplemento', 'Cliente', 'Material', 'PO', 'Documento EIPSA', 'Documento Cliente', 'Título', 'Rev.', 'Estado', 'Fecha'], axis=1)    # Estructuramos los datos del df_import.
-            df_import.to_excel(f'new_transmittal_' +str(i)+ '.xlsx', index=False)    # Generamos el dataframe de IMPORTACIÓN.
+            #df_import.to_excel(f'new_transmittal_' +str(i)+ '.xlsx', index=False)    # Generamos el dataframe de IMPORTACIÓN.
             aplicar_estilos_y_guardar_excel(df_final, f'new_transmittal_' + str(i) + '.xlsx')
             # Exportar el DataFrame estilizado a HTML
             styled_df = aplicar_estilos_html(df_import)
+            # Cargar datos previos del archivo Excel si existe
+            if os.path.exists(combine_path):
+                df_existing = pd.read_excel(combine_path)
+                df_combined = pd.concat([df_existing, df_final], ignore_index=True)
+            else:
+                df_combined = df_final
+            # Guardar los datos combinados en el archivo Excel
+            df_combined.to_excel(combine_path, index=False)
             # Generamos la entrada de datos al email
             newmail.To = ';santos-sanchez@eipsa.es;' +str(df3[0][0])    # Añadimos el contacto.
             newmail.CC = ';jesus-martinez@eipsa.es;ernesto-carrillo@eipsa.es;' +(df2[0][0])    # Añadimos las personas que se encuentran en copia.
@@ -138,7 +148,7 @@ while message:
             #newmail.Send()    # Envio automático del email.
             # Movemos los archivos a las carpetas correspondientes
             shutil.move(os.path.join(src, f'new_transmittal_' + str(i) + '.xlsx'), os.path.join(dst, f'new_transmittal_' + str(i) + '.xlsx'))
-            shutil.move(os.path.join(src, f'RESUMEN - ' + subject_email + '.xlsx'), os.path.join(dst2, f'RESUMEN - ' + subject_email + '.xlsx'))
+            shutil.move(os.path.join(src, f'RESUMEN - ' + subject_email + '.xlsx'), os.path.join(dst, f'RESUMEN - ' + subject_email + '.xlsx'))
             print(df_final)
             i += 1
         except (IndexError, KeyError):
