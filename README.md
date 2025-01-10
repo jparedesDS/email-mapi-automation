@@ -47,7 +47,7 @@ The project uses the following Python libraries:
 ## How to Run
 1. Clone this repository:
    ```bash
-   git clone https://github.com/your-username/email-mapi-automation.git
+   git clone https://github.com/jparedesDS/email-mapi-automation.git
 2. Install the required dependencies:
 ```
 pip install -r requirements.txt
