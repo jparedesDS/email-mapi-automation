@@ -53,13 +53,31 @@ def identificar_cliente_por_PO(df):
                '70215': 'CFE MERIDA', '70225': 'C.C. VALLADOLID',
                '70230': 'C.C. GONZALEZ ORTEGA', '70240': 'C.C. SAN LUIS',
                '80057': 'BU HASA', '80091': 'T.R. ENAP',
-               '19085': 'T.R. CEPSA', '30011': 'TECHNIP/BP OIL',
+               '19085': 'CEPSA/T.R.', '30011': 'BP OIL ESPAÑA',
                '75001': 'TECNIMONT', '60001': 'CEPSA WOOD',
-               '70112': 'CEPSA SAN ROQUE', '70801': 'CEPSA QUÍMICA PALOS',
+               '70112': 'CEPSA SAN ROQUE', '70801': 'CEPSA',
                '15282': 'ASTCOR', 'T.206': 'REPSOL PETRÓLEO',
-               'BP-T2': 'CNTCC', 'EP24I': 'ALMARAZ TRILLO',
-               '49000': 'REPSOL LA PAMPILLA', 'PO 15': 'ASTCOR',
-               'Q3710': 'INTECSA INDUSTRIAL'}
+               'BP-T2': 'CNTCC', 'EP24I': 'ALMARAZ/TRILLO',
+               '49000': 'JIGPC/ARAMCO', 'PO 15': 'ASTCOR',
+               'Q3710': 'INTECSA INDUSTRIAL', 'RFQ 1': 'BU HASA',
+               '70292': 'LECTA', 'APEIS': 'KNPC',
+               '***': 'CEPSA/AYESA', '30012': 'BP OIL REFINERIA',
+               'EC24T': 'ALMARAZ/TRILLO', '10735': 'SULZER',
+               '70700': 'CEPSA/WOOD', 'JUS&I': 'ARAMCO/HYUNDAI',
+               '70113': 'CEPSA', '10620': 'QATARBOP/TR',
+               'ADI-29': 'TECHNIP/SYNKEDIA', '10431': 'QATAREPC4/TR',
+               'PO P7': 'TECHNIP/REPSOL', '12574': 'ALPARGATA',
+               'ADI-2': 'TECHNIP/SYNKEDIA', '23000': 'TECHNIP/GALP',
+               '45077': 'ARAMCO PORTAL', '45000': 'AYESA/REPSOL',
+               '30015': 'BP OIL ESPAÑA', '19162': 'WISON/ARAMCO',
+               '48550': 'WISON/ARAMCO', '20175': 'TECHNIP/REPSOL',
+               'QR-DD': 'ASTCOR/WOOD', 'RFPP-': 'IDOM/REPSOL',
+               '10120': 'TR/DUQM', 'SOCAR': 'SOCAR/EMERSON',
+               '41650': 'SOCAR/EMERSON', 'P-P0C': 'SACYR/REPSOL',
+               'SEG/B': 'SINOPEC/ARAMCO', 'SEG /': 'SINOPEC/ARAMCO',
+               '10651': 'ARAMCO/RIYAS', '45124': 'ADNOC/YOKOGAWA',
+               'O-23/': 'SINES/YOKOGAWA', 'O-24/': 'SENER/GATE',
+               'GAT22': 'SENER/GATE', '45126': 'ADNOC/YOKOGAWA'}
 
     # Definir la expresión regular para extraer los primeros 5 dígitos del número de pedido (PO)
     regex_pattern = r'^(\d{5})'
@@ -110,8 +128,8 @@ def procesar_documento_y_fecha(df, receivedtime):
         pandas.DataFrame: DataFrame actualizado con el tipo de documento cambiado a entero y la hora exacta añadida.
     """
     # mapping (dict): Diccionario de mapeo para identificar el tipo de documento
-    mapping = {'PLG': 'Cálculos y Planos', 'DWG': 'Planos',
-               'CAL': 'Cálculos', 'ESP': 'Cálculos',
+    mapping = {'PLG': 'Planos', 'DWG': 'Planos',
+               'CAL': 'Cálculos', 'ESP': 'Cálculos y Planos',
                'CER': 'Certificado', 'NACE': 'Certificado',
                'DOS': 'Dossier', 'LIS': 'Listado',
                'ITP': 'Procedimientos', 'PRC': 'Procedimientos',
@@ -243,7 +261,28 @@ email_mapping = {'P-21/003': email_LB,
                  'P-24/036': email_AC, 'P-24/037': email_AC, 'P-24/038': email_AC, 'P-24/039': email_AC,
                  'P-24/040': email_AC, 'P-24/041': email_AC, 'P-24/042': email_AC, 'P-24/043': email_AC,
                  'P-24/044': email_AC, 'P-24/045': email_AC, 'P-24/046': email_AC, 'P-24/047': email_AC,
-                 'P-24/048': email_AC, 'P-24/049': email_AC, 'P-24/050': email_AC, 'P-24/051': email_AC,}
+                 'P-24/048': email_AC, 'P-24/049': email_AC, 'P-24/050': email_AC, 'P-24/051': email_AC,
+                   'P-24/052': email_AC, 'P-24/053': email_AC, 'P-24/054': email_AC, 'P-24/055': email_AC,
+                   'P-24/056': email_AC, 'P-24/057': email_AC, 'P-24/058': email_AC, 'P-24/059': email_AC,
+                   'P-24/060': email_AC, 'P-24/061': email_AC, 'P-24/062': email_AC, 'P-24/063': email_AC,
+                   'P-24/064': email_AC, 'P-24/065': email_AC, 'P-24/066': email_LB, 'P-24/067': email_AC,
+                   'P-24/068': email_AC, 'P-24/069': email_LB, 'P-24/070': email_LB, 'P-24/071': email_AC,
+                   'P-24/072': email_AC, 'P-24/073': email_AC, 'P-24/074': email_AC, 'P-24/075': email_AC,
+                   'P-24/076': email_AC, 'P-24/077': email_AC, 'P-24/078': email_AC, 'P-24/079': email_SS,
+                   'P-24/080': email_SS, 'P-24/081': email_AC, 'P-24/082': email_AC, 'P-24/083': email_AC,
+                   'P-24/084': email_AC, 'P-24/085': email_LB, 'P-24/086': email_CC, 'P-24/087': email_AC,
+                   'P-24/088': email_AC, 'P-24/089': email_AC, 'P-24/090': email_AC, 'P-24/091': email_AC,
+                   'P-24/092': email_SS, 'P-24/093': email_LB, 'P-24/094': email_LB, 'P-24/095': email_AC,
+                   'P-24/096': email_CC, 'P-24/097': email_AC, 'P-24/098': email_CC, 'P-24/099': email_CC,
+                   'P-24/100': email_SS, 'P-25/001': email_AC, 'P-25/002': email_AC, 'P-25/003': email_SS,
+                   'P-25/004': email_AC, 'P-25/005': email_SS, 'P-25/006': email_CC, 'P-25/007': email_SS,
+                   'P-25/008': email_AC, 'P-25/009': email_AC, 'P-25/010': email_AC, 'P-25/011': email_AC,
+                   'P-25/012': email_SS, 'P-25/013': email_AC, 'P-25/014': email_AC, 'P-25/015': email_SS,
+                   'P-25/016': email_AC, 'P-25/017': email_AC, 'P-25/018': email_AC, 'P-25/019': email_AC,
+                   'P-25/020': email_AC, 'P-25/021': email_AC, 'P-25/022': email_AC, 'P-25/023': email_AC,
+                   'P-25/024': email_AC, 'P-25/025': email_AC, 'P-25/026': email_SS, 'P-25/027': email_AC,
+                   'P-25/028': email_AC, 'P-25/029': email_AC, 'P-25/030': email_AC, 'P-25/031': email_AC,
+                   'P-25/032': email_AC, 'P-25/033': email_AC, 'P-25/034': email_AC, 'P-25/035': email_AC,}
 
 
 def get_responsable_email(numero_pedido):

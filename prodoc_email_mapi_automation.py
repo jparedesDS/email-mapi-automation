@@ -56,18 +56,30 @@ start_time = time.time()
 # Bucle captura de mensaje a través de BeautifulSoup para tabla html, bodytext y creación excel entrada BBDD
 while message:
     print(message.Subject)
-    if message.SenderEmailAddress == 'egesdoc@grupotr.es':
+    if message.SenderEmailAddress == 'Prodoc.postmaster@woodplc.com':
         try:
             receivedtime = message.ReceivedTime.strftime('%d-%m-%Y %H:%M:%S')   # Obtenemos la fecha entrante del email.
             subject_email = message.Subject    # Obtenemos el Asunto del email entrante.
+            subject_email = re.sub(r'[\/:*?"<>|]', '', subject_email)
+            #print(subject_email)
             message.SaveAs(subject_email + '.msg')
             text_html = message.HTMLBody    # Captura de texto email
             html_body = BeautifulSoup(text_html, "lxml")    # Captura del texto.
+            #print(html_body)
             html_tables = html_body('table')[0]    # Seleccionamos la tabla excel en el cuerpo del email.
+            #print(html_tables)
             df_list = pd.read_html(StringIO(text_html))    # Captura del email en text_html.
-            df = df_list[5]    # Seleccionamos la posición [5] en la que encontramos la información y tabla del email.
+            df = df_list[0]    # Seleccionamos la posición [5] en la que encontramos la información y tabla del email.
+            #print(df)
+            df = df.loc[:, ['Name', 'P.O.', 'Title', 'Rev', 'S.R. Status', 'Date']]    # Reorganizamos las columnas para realizar la importación correcta a BBDD.
             print(df)
-            df = df.loc[:, ['Vendor Number', 'TR Number', 'Title', 'Vendor Rev', 'Return Status']]    # Reorganizamos las columnas para realizar la importación correcta a BBDD.
+
+
+
+
+
+
+
             df['Tipo de documento'] = df['Vendor Number']    # Creamos una nueva columna en la cual identificamos el Tipo de documento a traves del ['Vendor Number'].
             df['Tipo de documento'] = df['Tipo de documento'].str.extract(r'(\w[A-Za-z#&]+)', expand=False)    # Obtenemos el 'TIPO DE DOCUMENTO'.
             df['Suplemento'] = df['Vendor Number']    # Creamos una nueva columna en la cual identificaremos el suplemento a traves del ['Vendor Number'].
