@@ -65,7 +65,7 @@ while message:
             df_list = pd.read_html(StringIO(text_html))    # Captura del email en text_html.
             df = df_list[5]    # Seleccionamos la posición [5] en la que encontramos la información y tabla del email.
             print(df)
-            df = df.loc[:, ['Vendor Number', 'TR Number', 'Title', 'Vendor Rev', 'Return Status']]    # Reorganizamos las columnas para realizar la importación correcta a BBDD.
+            df = df.loc[:, ['Vendor Number', 'TR Number', 'Title', 'Vendor Rev', 'TR Rev', 'Return Status']]    # Reorganizamos las columnas para realizar la importación correcta a BBDD.
             df['Tipo de documento'] = df['Vendor Number']    # Creamos una nueva columna en la cual identificamos el Tipo de documento a traves del ['Vendor Number'].
             df['Tipo de documento'] = df['Tipo de documento'].str.extract(r'(\w[A-Za-z#&]+)', expand=False)    # Obtenemos el 'TIPO DE DOCUMENTO'.
             df['Suplemento'] = df['Vendor Number']    # Creamos una nueva columna en la cual identificaremos el suplemento a traves del ['Vendor Number'].
@@ -93,7 +93,7 @@ while message:
             ### Cambiamos el tipo de estado de la entrada de la documentación a traves de la funcion cambiar_tipo_estado() ###
             cambiar_tipo_estado(df)
             # Renombramos las columnas al Castellano
-            df.rename(columns={'Vendor Number': 'Doc. EIPSA', 'Vendor Rev': 'Rev.', 'Title': 'Título', 'TR Number': 'Doc. Cliente', 'Return Status': 'Estado'}, inplace=True)
+            df.rename(columns={'Vendor Number': 'Doc. EIPSA', 'Vendor Rev': 'Rev.', 'Title': 'Título', 'TR Number': 'Doc. Cliente', 'Return Status': 'Estado', 'TR Rev': 'TR Rev.'}, inplace=True)
             # Generamos la conexión con Outlook y se genera el email
             ol = win32com.client.Dispatch("outlook.application")    # Conexión directa con la aplicación de Outlook.
             olmailitem = 0x0    # Tamaño del nuevo email.
@@ -110,11 +110,11 @@ while message:
             df3 = df['Responsable_email'].apply(pd.Series)    # Generamos df3 donde encontramos la información del responsable del proyecto.
             df_final = pd.concat([df, df3], axis=1)    # Se une la columna ['Responsable_email'] al df_final.
             # Estructuramos los datos del df_final
-            df_final = df_final.reindex(['Nº Pedido', 'Suplemento', 'Responsable' ,'Cliente', 'Material', 'PO', 'Doc. EIPSA', 'Doc. Cliente','Título', 'Rev.', 'Estado', 'Tipo de documento','Crítico', 'Nº Transmittal', 'Fecha'], axis=1)
+            df_final = df_final.reindex(['Nº Pedido', 'Suplemento', 'Responsable' ,'Cliente', 'Material', 'PO', 'Doc. EIPSA', 'Doc. Cliente','Título', 'Rev.', 'TR Rev.', 'Estado', 'Tipo de documento','Crítico', 'Nº Transmittal', 'Fecha'], axis=1)
             df_final.to_excel(f'RESUMEN - ' +subject_email+ '.xlsx', index=False)    # Generamos el dataframe RESUMEN.
             aplicar_estilos_y_guardar_excel(df_final, f'RESUMEN - ' +subject_email+ '.xlsx')
             df_import = df_final.copy()     # Generamos el dataframe de IMPORTACIÓN a ERP (df_import).
-            df_import = df_import.reindex(['Nº Pedido', 'Suplemento', 'PO', 'Doc. EIPSA', 'Doc. Cliente', 'Título', 'Rev.', 'Estado', 'Fecha'], axis=1)    # Estructuramos los datos del df_import.
+            df_import = df_import.reindex(['Nº Pedido', 'Suplemento', 'PO', 'Doc. EIPSA', 'Doc. Cliente', 'Título', 'Rev.', 'TR Rev.', 'Estado', 'Fecha'], axis=1)    # Estructuramos los datos del df_import.
             # Exportar el DataFrame estilizado a HTML
             styled_df = aplicar_estilos_html(df_import)
             # Cargar datos previos del archivo Excel si existe
