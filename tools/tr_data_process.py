@@ -165,7 +165,8 @@ def cambiar_tipo_estado(df):
         'B - REVIEWED WITH MAJOR COMMENTS': 'Com. Mayores',
         'C - REVIEWED WITH MINOR COMMENTS': 'Com. Menores',
         'F - REVIEWED WITHOUT COMMENTS': 'Aprobado',
-        'W - ISSUED FOR CERTIFICATION': 'Certificación'
+        'W - ISSUED FOR CERTIFICATION': 'Certificación',
+        'M - VOID': 'Eliminado'
         # AÑADIR PORTAL PRODOC
     }
 
@@ -382,6 +383,8 @@ def aplicar_estilos_html(df):
             return 'color: #000000; font-weight: bold; background-color: #F79646; font-size: 14px;'
         elif val == 'Aprobado':
             return 'color: #000000; font-weight: bold; background-color: #00D25F; font-size: 14px;'
+        elif val == 'Eliminado':
+            return 'color: #000000; font-weight: bold; background-color: #FF0000; font-size: 14px;'
         else:
             return 'text-align: left; font-size: 14px;'
 
