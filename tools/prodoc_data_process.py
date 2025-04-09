@@ -14,8 +14,6 @@ email_SS = ';sandra-sanz@eipsa.es;'
 email_JV = ';jorge-valtierra@eipsa.es'
 email_CC = ';carlos-crespohor@eipsa.es;'
 
-
-
 def reemplazar_null(df):
     """
         Esta función toma un DataFrame como entrada y reemplaza los valores de la columna "Suplemento" de acuerdo con el mapeo proporcionado en el diccionario mapping

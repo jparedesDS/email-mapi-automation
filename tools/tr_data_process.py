@@ -11,10 +11,8 @@ email_TO_CC = ';jesus-martinez@eipsa.es;ernesto-carrillo@eipsa.es;'
 email_LB = ';luis-bravo@eipsa.es;'
 email_AC = ';ana-calvo@eipsa.es;'
 email_SS = ';sandra-sanz@eipsa.es;'
-email_JV = ';jorge-valtierra@eipsa.es'
+email_JV = ';jorge-valtierra@eipsa.es;'
 email_CC = ';carlos-crespohor@eipsa.es;'
-
-
 
 def reemplazar_null(df):
     """
@@ -28,7 +26,7 @@ def reemplazar_null(df):
     """
     mapping = {np.nan: 'S00', 'S01': 'S01', 'S02': 'S02', 'S03': 'S03',
                'S04': 'S04', 'S05': 'S05', 'S06': 'S06', 'S07': 'S07'}
-    df['Suplemento'] = df['Suplemento'].map(mapping).fillna('S00')
+    df['Supp.'] = df['Supp.'].map(mapping).fillna('S00')
     return df
 
 
@@ -357,7 +355,6 @@ def aplicar_estilos_y_guardar_excel(df, filename):
 
 
 def aplicar_estilos_html(df):
-    # Definir estilos CSS para las celdas con tamaño de letra
     styles = {
         'fecha': 'background-color: #D4DCF4; text-align: left; font-size: 14px;',
         'header': 'background-color: #6678AF; color: #FFFFFF; text-align: left; font-size: 14px;',
@@ -365,13 +362,11 @@ def aplicar_estilos_html(df):
         'cell_default': 'background-color: #D4DCF4; text-align: left; font-size: 14px;'
     }
 
-    # Función para aplicar estilos a celdas específicas
     def style_specific_cell(val):
         if isinstance(val, pd.Timestamp):
             return styles['fecha']
         return styles['cell_even']
 
-    # Aplicar estilos condicionales
     def apply_conditional_styles(val):
         if val == 'Rechazado':
             return 'color: #000000; font-weight: bold; background-color: #FFA19A; font-size: 14px;'
@@ -388,39 +383,33 @@ def aplicar_estilos_html(df):
         else:
             return 'text-align: left; font-size: 14px;'
 
-    # Estilos para la cabecera
     header_style = [{'selector': 'th', 'props': [('background-color', '#6678AF'),
                                                  ('color', '#FFFFFF'),
                                                  ('text-align', 'center'),
-                                                 ('font-size', '14px')]}]
+                                                 ('font-size', '14px'),
+                                                 ('font-weight', 'bold')]}]
 
-    # Aplicar estilos al DataFrame
-    df = df.style.applymap(style_specific_cell).applymap(apply_conditional_styles).set_table_styles(header_style)
+    # Aplicar los estilos con .map en lugar de .applymap
+    styled = df.style \
+        .map(style_specific_cell) \
+        .map(apply_conditional_styles) \
+        .set_table_styles(header_style)
 
-    return df
+    # Convertir a HTML sin índice
+    return styled.to_html(index=False)
 
 
+def aplicar_estilo_info(df):
+    # Aplicar estilos básicos a todas las celdas
+    estilo_celdas = 'background-color: #D4DCF4; text-align: left; font-size: 14px;'
+    estilo_header = [{'selector': 'th', 'props': [('background-color', '#6678AF'),
+                                                  ('color', '#FFFFFF'),
+                                                  ('text-align', 'center'),
+                                                  ('font-size', '15px'),
+                                                  ('font-weight', 'bold')]}]
 
-# PORTAL PRODOC
-def prodoc_vendor_number(df):
-    """
-    Función para cambiar el tipo de documento a entero y añadir la hora exacta recibida del email.
+    styled = df.style \
+        .map(lambda _: estilo_celdas) \
+        .set_table_styles(estilo_header)
 
-    Args:
-        df (pandas.DataFrame): DataFrame que contiene las columnas 'Tipo de documento' y 'Fecha'.
-        receivedtime (datetime): Hora exacta recibida del email.
-
-    Returns:
-        pandas.DataFrame: DataFrame actualizado con el tipo de documento cambiado a entero y la hora exacta añadida.
-    """
-    # mapping (dict): Diccionario de mapeo para identificar el tipo de documento
-    mapping = {'7011318362': 'P-24/091', '7070000087': 'P-24/054',
-               '7011319592': 'P-24/073', '7011246198': 'Certificado'}
-
-    # Asegurar que la columna es string y eliminar espacios en blanco
-    df['Nº Pedido'] = df['Nº Pedido'].astype(str).str.strip()
-
-    # Aplicar mapeo y mantener valores originales si no están en el diccionario
-    df['Nº Pedido'] = df['Nº Pedido'].map(mapping).fillna(df['Nº Pedido'])
-
-    return df
+    return styled.to_html(index=False)
