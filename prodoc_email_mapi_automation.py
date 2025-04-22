@@ -1,4 +1,4 @@
-""" Versión v1.0.0 - Automatización, envío, tratamiento de datos y entrada a BBDD para transmittals de PRODOC """
+""" Versión v1.0.0 - Automatización, envío, tratamiento de datos y entrada a BBDD para transmittals de Técnicas Reunidas """
 from datetime import timedelta
 # Imports
 import time
@@ -14,7 +14,7 @@ date = datetime.now()
 dia = date.strftime('%d-%m-%Y')
 fecha_actual = pd.Timestamp.now()
 # Generamos las carpetas correspondientes para guardar los archivos
-nombre_carpeta = os.path.join("f'Z:\\JOSE\\02 DEVOLUCIÓN DOCUMENTACIÓN\\PRODOC\\" +dia)
+nombre_carpeta = os.path.join(f'Z:\\JOSE\\02 DEVOLUCIÓN DOCUMENTACIÓN\\TECNICAS REUNIDAS\\' +dia)
 if not os.path.isdir(nombre_carpeta):
     print(f'No existe la ruta: '+nombre_carpeta+', se crea la carpeta')
     os.mkdir(nombre_carpeta)
@@ -67,45 +67,32 @@ while message:
             prodoc_vendor_number(df)
             #print(df['Nº Pedido'])
             #print(df)
-
-
-
-            df['Tipo de documento'] = df['Vendor Number']  # Creamos una nueva columna en la cual identificamos el Tipo de documento a traves del ['Vendor Number'].
-            df['Tipo de documento'] = df['Tipo de documento'].str.extract(r'(\w[A-Za-z#&]+)',
-                                                                          expand=False)  # Obtenemos el 'TIPO DE DOCUMENTO'.
-            df['Supp.'] = df['Vendor Number']  # Creamos una nueva columna en la cual identificaremos el suplemento a traves del ['Vendor Number'].
-            df['Supp.'] = df['Supp.'].str.extract(r'([S]+\d+)', expand=False)  # Obtener numero de suplemento (S00).
+            df['Tipo de documento'] = df['Name']  # Creamos una nueva columna en la cual identificamos el Tipo de documento a traves del ['Vendor Number'].
+            df['Tipo de documento'] = df['Tipo de documento'].str.extract(r'-(\D{2,3})(?=-\d{1,})',expand=False)  # Obtenemos el 'TIPO DE DOCUMENTO'.
+            #print(df['Tipo de documento'])
+            #print(df)
+            df['Supp.'] = 'S00'  # Creamos una nueva columna en la cual identificaremos el suplemento a traves del ['Vendor Number'].
+            #df['Supp.'] = df['Supp.'].str.extract(r'([S]+\d+)', expand=False)  # Obtener numero de suplemento (S00).
             ### Reemplaza los valores de la columna "Suplemento", si el valor no se encuentra en el mapeo o es NaN, se reemplaza con 'S00'.
             reemplazar_null(df)
-            df.insert(6, "Crítico",
-                      "Sí")  # Creación nuevas columnas ["Critico"] en la 6º posición del df ################## La idea sería a traves del tipo de documento indicar si es critico o no.
-            df['Nº Pedido'] = df['Vendor Number']  # Obtenemos el 'Nº DE PEDIDO' del Transmittals
-            df['Nº Pedido'] = df['Nº Pedido'].str.extract(r'(\d+-\d+)',
-                                                          expand=False)  # Con regex extraemos el Nº Pedido.
-            df['Nº Pedido'] = df['Nº Pedido'].str.replace('-',
-                                                          '/')  # Reemplazamos el guión por '/' para identificarlo igual que nuestro número de pedidos.
-            df['Nº Pedido'] = 'P-' + df['Nº Pedido'].astype(
-                str)  # Añadimos al principio de la columna 'P-' para identificarlo igual que nuestro número de pedido.
-            df[
-                'PO'] = message.Subject  # Creamos una nueva columna a traves del message.Subject en la que identificaremos el PO del pedido.
-            df['PO'] = df['PO'].str.extract(r'(\d{10})', expand=False)
-            df['Nº Transmittal'] = df['PO']
-            ### A través del PO identificamos los 5 primeros números con regex e identificamos que Cliente es ###
-            identificar_cliente_por_PO(df)
-            ### Reconocemos los 3 últimos numeros y modificamos a texto la columna TIPO indicandonos que tipo de proyecto es ###
-            reconocer_tipo_proyecto(df)
+            #identificar_cliente_por_PO(df)
+            #reconocer_tipo_proyecto(df)
             # Generamos una nueva columna llamada ['EMAIL'] con el Tipo de documento, el cual transformaremos para identificar el email de la persona al que va asociado el documento.
             df['EMAIL'] = df['Tipo de documento']  # Damos los datos de tipo de documento a la columna df[EMAIL]
             df2['EMAIL'] = df['EMAIL']  # Creamos un df2 con solo esta columna.
             df['EMAIL'].pop  # Eliminamos la columna.
-            ### Cambiamos el tipo de estado de la entrada de la documentación a traves de la funcion procesar_documento_y_fecha() ###
             procesar_documento_y_fecha(df, receivedtime)
-            ### Cambiamos el tipo de estado de la entrada de la documentación a traves de la funcion cambiar_tipo_estado() ###
             cambiar_tipo_estado(df)
             # Renombramos las columnas al Castellano
-            df.rename(columns={'Vendor Number': 'Doc. EIPSA', 'Vendor Rev': 'Rev.', 'Title': 'Título',
-                               'TR Number': 'Doc. Cliente', 'Return Status': 'Estado', 'TR Rev': 'TR Rev.'},
+            df.rename(columns={'Name': 'Doc. EIPSA', 'Rev': 'Rev.', 'Title': 'Título',
+                               'TR Number': 'Name', 'S.R. Status': 'Estado', 'Rev': 'TR Rev.', 'P.O.': 'PO'},
                       inplace=True)
+            print(df)
+
+
+
+
+
             # Generamos la conexión con Outlook y se genera el email
             ol = win32com.client.Dispatch("outlook.application")  # Conexión directa con la aplicación de Outlook.
             olmailitem = 0x0  # Tamaño del nuevo email.
@@ -146,13 +133,14 @@ while message:
             # Guardar los datos combinados en el archivo Excel
             df_combined.to_excel(combine_path, index=False)
             # Exportar el DataFrame estilizado a HTML
-            df_body = df_import.drop(columns=['Nº Pedido', 'Supp.', 'PO'])  # Quitamos esas columnas para el cuerpo
+            df_body = df_import.drop(
+                columns=['Nº Pedido', 'Supp.', 'PO', 'Fecha'])  # Quitamos esas columnas para el cuerpo
             df_body = aplicar_estilos_html(df_body)
             # Creamos un DataFrame con los datos superiores (Nº Pedido, Supp., PO)
             df_info = pd.DataFrame({
-                df_final['Cliente'].iloc[0]: ['Nº Pedido', 'Supp.', 'PO'],
+                df_final['Cliente'].iloc[0]: ['Nº Pedido', 'Supp.', 'PO', 'Fecha'],
                 df_final['Material'].iloc[0]: [df_import['Nº Pedido'].iloc[0], df_import['Supp.'].iloc[0],
-                                               df_import['PO'].iloc[0]]})
+                                               df_import['PO'].iloc[0], df_import['Fecha'].iloc[0]]})
             df_info = aplicar_estilo_info(df_info)
             # Unimos HTML al cuerpo del email
             body = df_info + df_body

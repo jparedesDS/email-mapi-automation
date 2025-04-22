@@ -14,6 +14,31 @@ email_SS = ';sandra-sanz@eipsa.es;'
 email_JV = ';jorge-valtierra@eipsa.es'
 email_CC = ';carlos-crespohor@eipsa.es;'
 
+
+def prodoc_vendor_number(df):
+    """
+    Función para cambiar el tipo de documento a entero y añadir la hora exacta recibida del email.
+
+    Args:
+        df (pandas.DataFrame): DataFrame que contiene las columnas 'Tipo de documento' y 'Fecha'.
+        receivedtime (datetime): Hora exacta recibida del email.
+
+    Returns:
+        pandas.DataFrame: DataFrame actualizado con el tipo de documento cambiado a entero y la hora exacta añadida.
+    """
+    # mapping (dict): Diccionario de mapeo para identificar el tipo de documento
+    mapping = {'7011318362': 'P-24/091', '7070000087': 'P-24/054',
+               '7011319592': 'P-24/073', '7011246198': 'TEST PRODOC'}
+
+    # Asegurar que la columna es string y eliminar espacios en blanco
+    df['Nº Pedido'] = df['Nº Pedido'].astype(str).str.strip()
+
+    # Aplicar mapeo y mantener valores originales si no están en el diccionario
+    df['Nº Pedido'] = df['Nº Pedido'].map(mapping).fillna(df['Nº Pedido'])
+
+    return df
+
+
 def reemplazar_null(df):
     """
         Esta función toma un DataFrame como entrada y reemplaza los valores de la columna "Suplemento" de acuerdo con el mapeo proporcionado en el diccionario mapping
@@ -26,9 +51,8 @@ def reemplazar_null(df):
     """
     mapping = {np.nan: 'S00', 'S01': 'S01', 'S02': 'S02', 'S03': 'S03',
                'S04': 'S04', 'S05': 'S05', 'S06': 'S06', 'S07': 'S07'}
-    df['Suplemento'] = df['Suplemento'].map(mapping).fillna('S00')
+    df['Supp.'] = df['Supp.'].map(mapping).fillna('S00')
     return df
-
 
 
 def identificar_cliente_por_PO(df):
@@ -82,10 +106,9 @@ def identificar_cliente_por_PO(df):
     regex_pattern = r'^(\d{5})'
 
     # Aplicar la expresión regular para extraer los primeros 5 dígitos del PO y mapear el cliente
-    df['Cliente'] = df['PO'].apply(lambda x: mapping[re.match(regex_pattern, x).group(1)] if re.match(regex_pattern, x) else '')
+    df['Cliente'] = df['P.O.'].apply(lambda x: mapping[re.match(regex_pattern, x).group(1)] if re.match(regex_pattern, x) else '')
 
     return df
-
 
 
 def reconocer_tipo_proyecto(df):
@@ -106,13 +129,12 @@ def reconocer_tipo_proyecto(df):
                '920': 'ORIFICIOS'}
 
     # Extraemos
-    df['Material'] = df['PO'].str.extract(r'(\d{3}+\Z)', expand=False)
+    df['Material'] = df['P.O.'].str.extract(r'(\d{3}+\Z)', expand=False)
 
     # Reconocer los 3 últimos números y modifica la columna 'Material' usando el mapeo proporcionado
     df['Material'] = df['Material'].str[-3:].map(mapping)
 
     return df
-
 
 
 def procesar_documento_y_fecha(df, receivedtime):
@@ -145,7 +167,6 @@ def procesar_documento_y_fecha(df, receivedtime):
     return df
 
 
-
 def cambiar_tipo_estado(df):
     """
     Función para cambiar el tipo de estado en un DataFrame.
@@ -160,18 +181,17 @@ def cambiar_tipo_estado(df):
     # mapping (dict): Diccionario de mapeo para identificar el estado del documento
     mapping = {
         'A - REJECTED': 'Rechazado',
-        'B - REVIEWED WITH MAJOR COMMENTS': 'Com. Mayores',
-        'C - REVIEWED WITH MINOR COMMENTS': 'Com. Menores',
-        'F - REVIEWED WITHOUT COMMENTS': 'Aprobado',
-        'W - ISSUED FOR CERTIFICATION': 'Certificación'
+        '1 - WITH COMMENTS': 'Com. Mayores',
+        '2 - WITHOUT COMMENTS': 'Aprobado',
+        '2I - FOR INFORMATION ONLY ': 'Informativo',
+        '3 - WITH MINOR COMMENTS': 'Com. Menores',
         # AÑADIR PORTAL PRODOC
     }
 
     # Aplicar el mapeo para cambiar el tipo de estado en la columna 'Return Status'
-    df['Return Status'] = df['Return Status'].map(mapping)
+    df['S.R. Status'] = df['S.R. Status'].map(mapping)
 
     return df
-
 
 
 def email_employee(df):
@@ -191,7 +211,6 @@ def email_employee(df):
     df['EMAIL'] = df['EMAIL'].map(mapping)
     df = df['EMAIL'].apply(pd.Series)
     return df
-
 
 
 # Diccionario de mapeo para la función get_responsable_email()
@@ -354,7 +373,6 @@ def aplicar_estilos_y_guardar_excel(df, filename):
 
 
 def aplicar_estilos_html(df):
-    # Definir estilos CSS para las celdas con tamaño de letra
     styles = {
         'fecha': 'background-color: #D4DCF4; text-align: left; font-size: 14px;',
         'header': 'background-color: #6678AF; color: #FFFFFF; text-align: left; font-size: 14px;',
@@ -362,13 +380,11 @@ def aplicar_estilos_html(df):
         'cell_default': 'background-color: #D4DCF4; text-align: left; font-size: 14px;'
     }
 
-    # Función para aplicar estilos a celdas específicas
     def style_specific_cell(val):
         if isinstance(val, pd.Timestamp):
             return styles['fecha']
         return styles['cell_even']
 
-    # Aplicar estilos condicionales
     def apply_conditional_styles(val):
         if val == 'Rechazado':
             return 'color: #000000; font-weight: bold; background-color: #FFA19A; font-size: 14px;'
@@ -380,42 +396,38 @@ def aplicar_estilos_html(df):
             return 'color: #000000; font-weight: bold; background-color: #F79646; font-size: 14px;'
         elif val == 'Aprobado':
             return 'color: #000000; font-weight: bold; background-color: #00D25F; font-size: 14px;'
+        elif val == 'Eliminado':
+            return 'color: #000000; font-weight: bold; background-color: #FF0000; font-size: 14px;'
         else:
             return 'text-align: left; font-size: 14px;'
 
-    # Estilos para la cabecera
     header_style = [{'selector': 'th', 'props': [('background-color', '#6678AF'),
                                                  ('color', '#FFFFFF'),
                                                  ('text-align', 'center'),
-                                                 ('font-size', '14px')]}]
+                                                 ('font-size', '14px'),
+                                                 ('font-weight', 'bold')]}]
 
-    # Aplicar estilos al DataFrame
-    df = df.style.applymap(style_specific_cell).applymap(apply_conditional_styles).set_table_styles(header_style)
+    # Aplicar los estilos con .map en lugar de .applymap
+    styled = df.style \
+        .map(style_specific_cell) \
+        .map(apply_conditional_styles) \
+        .set_table_styles(header_style)
 
-    return df
+    # Convertir a HTML sin índice
+    return styled.to_html(index=False)
 
 
+def aplicar_estilo_info(df):
+    # Aplicar estilos básicos a todas las celdas
+    estilo_celdas = 'background-color: #D4DCF4; text-align: left; font-size: 14px;'
+    estilo_header = [{'selector': 'th', 'props': [('background-color', '#6678AF'),
+                                                  ('color', '#FFFFFF'),
+                                                  ('text-align', 'center'),
+                                                  ('font-size', '15px'),
+                                                  ('font-weight', 'bold')]}]
 
-# PORTAL PRODOC
-def prodoc_vendor_number(df):
-    """
-    Función para cambiar el tipo de documento a entero y añadir la hora exacta recibida del email.
+    styled = df.style \
+        .map(lambda _: estilo_celdas) \
+        .set_table_styles(estilo_header)
 
-    Args:
-        df (pandas.DataFrame): DataFrame que contiene las columnas 'Tipo de documento' y 'Fecha'.
-        receivedtime (datetime): Hora exacta recibida del email.
-
-    Returns:
-        pandas.DataFrame: DataFrame actualizado con el tipo de documento cambiado a entero y la hora exacta añadida.
-    """
-    # mapping (dict): Diccionario de mapeo para identificar el tipo de documento
-    mapping = {'7011318362': 'P-24/091', '7070000087': 'P-24/054',
-               '7011319592': 'P-24/073', '7011246198': 'Certificado'}
-
-    # Asegurar que la columna es string y eliminar espacios en blanco
-    df['Nº Pedido'] = df['Nº Pedido'].astype(str).str.strip()
-
-    # Aplicar mapeo y mantener valores originales si no están en el diccionario
-    df['Nº Pedido'] = df['Nº Pedido'].map(mapping).fillna(df['Nº Pedido'])
-
-    return df
+    return styled.to_html(index=False)
