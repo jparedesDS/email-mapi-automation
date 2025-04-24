@@ -29,7 +29,10 @@ def prodoc_vendor_number(df):
     # mapping (dict): Diccionario de mapeo para identificar el tipo de documento
     mapping = {'7011318362': 'P-24/091', '7070000087': 'P-24/054',
                '7011319592': 'P-24/073', '7011294464': 'P-23/087',
-               }
+               '600017293': 'P-23/097', '7011265051': 'P-24/006',
+               '7080111164': 'P-24/023', '7080113517': 'P-24/044',
+               '7011295889': 'P-24/050', '7080115423': 'P-24/058',
+               '7080115700': 'P-24/060'}
 
     # Asegurar que la columna es string y eliminar espacios en blanco
     df['Nº Pedido'] = df['Nº Pedido'].astype(str).str.strip()
@@ -37,22 +40,6 @@ def prodoc_vendor_number(df):
     # Aplicar mapeo y mantener valores originales si no están en el diccionario
     df['Nº Pedido'] = df['Nº Pedido'].map(mapping).fillna(df['Nº Pedido'])
 
-    return df
-
-
-def reemplazar_null(df):
-    """
-        Esta función toma un DataFrame como entrada y reemplaza los valores de la columna "Suplemento" de acuerdo con el mapeo proporcionado en el diccionario mapping
-
-        Args:
-            df (pandas.DataFrame): DataFrame que contiene "NULOS".
-
-        Returns:
-            pandas.DataFrame: DataFrame actualizado, si el valor no se encuentra en el mapeo o es NaN, se reemplaza con 'S00'.
-    """
-    mapping = {np.nan: 'S00', 'S01': 'S01', 'S02': 'S02', 'S03': 'S03',
-               'S04': 'S04', 'S05': 'S05', 'S06': 'S06', 'S07': 'S07'}
-    df['Supp.'] = df['Supp.'].map(mapping).fillna('S00')
     return df
 
 
@@ -123,12 +110,12 @@ def reconocer_tipo_proyecto(df):
     Returns:
         pandas.DataFrame: DataFrame actualizado con la columna 'Material' indicando el tipo de proyecto.
     """
-    mapping = {
-        '7011318362': 'CAUDAL',
-        '7070000087': 'TEMPERATURA',
-        '7011319592': 'TEMPERATURA',
-        '7011294464': 'PLACAS',
-    }
+    mapping = {'7011318362': 'CAUDAL', '7070000087': 'TEMPERATURA',
+               '7011319592': 'TEMPERATURA', '7011294464': 'PLACAS',
+               '600017293': 'P-23/097', '7011265051': 'P-24/006',
+               '7080111164': 'P-24/023', '7080113517': 'P-24/044',
+               '7011295889': 'P-24/050', '7080115423': 'P-24/058',
+               '7080115700': 'P-24/060'}
 
     # Asignamos el tipo de proyecto según el número de pedido
     df['Material'] = df['PO'].map(mapping).fillna(df['PO'])  # Si no se encuentra en el mapeo, deja el código original
@@ -328,6 +315,20 @@ email_mapping = {'P-21/003': email_LB,
                    'P-25/028': email_AC, 'P-25/029': email_AC, 'P-25/030': email_AC, 'P-25/031': email_AC,
                    'P-25/032': email_AC, 'P-25/033': email_AC, 'P-25/034': email_AC, 'P-25/035': email_AC, }
 
+def reemplazar_null(df):
+    """
+        Esta función toma un DataFrame como entrada y reemplaza los valores de la columna "Suplemento" de acuerdo con el mapeo proporcionado en el diccionario mapping
+
+        Args:
+            df (pandas.DataFrame): DataFrame que contiene "NULOS".
+
+        Returns:
+            pandas.DataFrame: DataFrame actualizado, si el valor no se encuentra en el mapeo o es NaN, se reemplaza con 'S00'.
+    """
+    mapping = {np.nan: 'S00', 'S01': 'S01', 'S02': 'S02', 'S03': 'S03',
+               'S04': 'S04', 'S05': 'S05', 'S06': 'S06', 'S07': 'S07'}
+    df['Supp.'] = df['Supp.'].map(mapping).fillna('S00')
+    return df
 
 def get_responsable_email(numero_pedido):
     """
