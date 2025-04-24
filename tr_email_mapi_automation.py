@@ -54,7 +54,6 @@ while message:
             html_tables = html_body('table')[0]    # Seleccionamos la tabla excel en el cuerpo del email.
             df_list = pd.read_html(StringIO(text_html))    # Captura del email en text_html.
             df = df_list[5]    # Seleccionamos la posición [5] en la que encontramos la información y tabla del email.
-            #print(df)
             df = df.loc[:, ['Vendor Number', 'TR Number', 'Title', 'Vendor Rev', 'TR Rev', 'Return Status']]    # Reorganizamos las columnas para realizar la importación correcta a BBDD.
             df['Tipo de documento'] = df['Vendor Number']    # Creamos una nueva columna en la cual identificamos el Tipo de documento a traves del ['Vendor Number'].
             df['Tipo de documento'] = df['Tipo de documento'].str.extract(r'(\w[A-Za-z#&]+)', expand=False)    # Obtenemos el 'TIPO DE DOCUMENTO'.

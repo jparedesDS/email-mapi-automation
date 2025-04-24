@@ -28,7 +28,8 @@ def prodoc_vendor_number(df):
     """
     # mapping (dict): Diccionario de mapeo para identificar el tipo de documento
     mapping = {'7011318362': 'P-24/091', '7070000087': 'P-24/054',
-               '7011319592': 'P-24/073', '7011246198': 'TEST PRODOC'}
+               '7011319592': 'P-24/073', '7011294464': 'P-23/087',
+               }
 
     # Asegurar que la columna es string y eliminar espacios en blanco
     df['Nº Pedido'] = df['Nº Pedido'].astype(str).str.strip()
@@ -100,7 +101,8 @@ def identificar_cliente_por_PO(df):
                'SEG/B': 'SINOPEC/ARAMCO', 'SEG /': 'SINOPEC/ARAMCO',
                '10651': 'ARAMCO/RIYAS', '45124': 'ADNOC/YOKOGAWA',
                'O-23/': 'SINES/YOKOGAWA', 'O-24/': 'SENER/GATE',
-               'GAT22': 'SENER/GATE', '45126': 'ADNOC/YOKOGAWA'}
+               'GAT22': 'SENER/GATE', '45126': 'ADNOC/YOKOGAWA',
+               '70700': 'CEPSA/WOOD'}
 
     # Definir la expresión regular para extraer los primeros 5 dígitos del número de pedido (PO)
     regex_pattern = r'^(\d{5})'
@@ -113,26 +115,23 @@ def identificar_cliente_por_PO(df):
 
 def reconocer_tipo_proyecto(df):
     """
-    Función para reconocer los 3 últimos números y modificar la columna 'TIPO' indicando qué tipo de proyecto es.
+    Reconoce el tipo de proyecto basado en el número de pedido ('PO') y lo asigna a la columna 'Material'.
 
     Args:
-        df (pandas.DataFrame): DataFrame que contiene la columna 'Material'.
+        df (pandas.DataFrame): DataFrame que contiene la columna 'PO'.
 
     Returns:
-        pandas.DataFrame: DataFrame actualizado con la columna 'Material' modificada.
+        pandas.DataFrame: DataFrame actualizado con la columna 'Material' indicando el tipo de proyecto.
     """
-    # mapping (dict): Diccionario de mapeo para identificar el tipo de proyecto.
-    mapping = {'411': 'TEMPERATURA', '412': 'TEMPERATURA',
-               '610': 'BIMETÁLICOS', '640': 'TEMPERATURA',
-               '710': 'NIVEL VIDRIO', '740': 'TUBERÍAS',
-               '910': 'CAUDAL', '911': 'SALTOS MULTIPLES',
-               '920': 'ORIFICIOS'}
+    mapping = {
+        '7011318362': 'CAUDAL',
+        '7070000087': 'TEMPERATURA',
+        '7011319592': 'TEMPERATURA',
+        '7011294464': 'PLACAS',
+    }
 
-    # Extraemos
-    df['Material'] = df['P.O.'].str.extract(r'(\d{3}+\Z)', expand=False)
-
-    # Reconocer los 3 últimos números y modifica la columna 'Material' usando el mapeo proporcionado
-    df['Material'] = df['Material'].str[-3:].map(mapping)
+    # Asignamos el tipo de proyecto según el número de pedido
+    df['Material'] = df['PO'].map(mapping).fillna(df['PO'])  # Si no se encuentra en el mapeo, deja el código original
 
     return df
 
@@ -156,7 +155,8 @@ def procesar_documento_y_fecha(df, receivedtime):
                'ITP': 'Procedimientos', 'PRC': 'Procedimientos',
                'MAN': 'Manual', 'VDB': 'Listado',
                'PLN': 'PPI', 'PLD': 'Nameplate',
-               'CAT': 'Catalogo', 'DL': 'Listado'}
+               'CAT': 'Catalogo', 'DL': 'Listado',
+               'SPL': 'Repuestos'}
 
     # Cambiar el tipo de documento usando el mapeo proporcionado
     df['Tipo de documento'] = df['Tipo de documento'].map(mapping)
@@ -166,6 +166,32 @@ def procesar_documento_y_fecha(df, receivedtime):
 
     return df
 
+def critico(df):
+    """
+    Función para cambiar el tipo de estado en un DataFrame.
+
+    Args:
+        df (pandas.DataFrame): DataFrame que contiene la columna 'Return Status'.
+
+    Returns:
+        pandas.DataFrame: DataFrame actualizado con los tipos de estado modificados.
+    """
+
+    # mapping (dict): Diccionario de mapeo para identificar el estado del documento
+    mapping = {'Planos': 'Sí',
+               'Cálculos': 'Sí', 'Cálculos y Planos': 'Sí',
+               'Certificado': 'No',
+               'Dossier': 'No',
+               'Procedimientos': 'No',
+               'Manual': 'Sí',
+               'PPI': 'Sí', 'Nameplate': 'No',
+               'Catalogo': 'Sí', 'Listado': 'Sí',
+               'Repuestos': 'No'}
+
+    # Aplicar el mapeo para cambiar el tipo de estado en la columna 'Return Status'
+    df['Crítico'] = df['Tipo de documento'].map(mapping)
+
+    return df
 
 def cambiar_tipo_estado(df):
     """
@@ -193,7 +219,6 @@ def cambiar_tipo_estado(df):
 
     return df
 
-
 def email_employee(df):
     """
         Función para identificar el empleado encargado del documento
@@ -206,7 +231,7 @@ def email_employee(df):
     """
 
     mapping = {'PLG': '', 'DWG': '', 'CAL': '', 'ESP': '', 'CER': email_JV, 'NACE': '', 'LIS': email_JV, 'ITP': '',
-               'PRC': email_JV, 'MAN': email_JV, 'VDB': '', 'PLN': '', 'PLD': '', 'CAT': email_JV, 'DL': '', 'DOS': email_JV}
+               'PRC': email_JV, 'MAN': email_JV, 'VDB': '', 'PLN': '', 'PLD': '', 'CAT': email_JV, 'DL': '', 'DOS': email_JV, 'SPL': email_JV}
 
     df['EMAIL'] = df['EMAIL'].map(mapping)
     df = df['EMAIL'].apply(pd.Series)

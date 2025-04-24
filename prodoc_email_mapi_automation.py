@@ -1,4 +1,4 @@
-""" Versión v1.0.0 - Automatización, envío, tratamiento de datos y entrada a BBDD para transmittals de Técnicas Reunidas """
+""" Versión v1.0.0 - Automatización, envío, tratamiento de datos y entrada a BBDD para transmittals de PRODOC """
 from datetime import timedelta
 # Imports
 import time
@@ -14,7 +14,7 @@ date = datetime.now()
 dia = date.strftime('%d-%m-%Y')
 fecha_actual = pd.Timestamp.now()
 # Generamos las carpetas correspondientes para guardar los archivos
-nombre_carpeta = os.path.join(f'Z:\\JOSE\\02 DEVOLUCIÓN DOCUMENTACIÓN\\TECNICAS REUNIDAS\\' +dia)
+nombre_carpeta = os.path.join(f'Z:\\JOSE\\02 DEVOLUCIÓN DOCUMENTACIÓN\\PRODOC\\' +dia)
 if not os.path.isdir(nombre_carpeta):
     print(f'No existe la ruta: '+nombre_carpeta+', se crea la carpeta')
     os.mkdir(nombre_carpeta)
@@ -35,7 +35,7 @@ i = 0
 # Conexionado con el servidor de Outlook
 outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
 # Bandeja de entrada de Outlook, acceso y búsqueda de los últimos mensajes recibidos .Folders("carpeta")
-inbox = outlook.GetDefaultFolder(6).Folders["test1"]    # Quitar selección de carpeta
+inbox = outlook.GetDefaultFolder(6)#.Folders["test1"]    # Quitar selección de carpeta
 messages = inbox.Items.Restrict("[Unread]=true")    # Obligamos a solo buscar entre los emails que se encuentren aún sin leer
 messages.Sort("ReceivedTime", True)    # Ordenamos los mensajes según su entrada por tiempo
 message = messages.GetFirst()    # Selección del email
@@ -48,49 +48,42 @@ while message:
         try:
             receivedtime = message.ReceivedTime.strftime('%d-%m-%Y %H:%M:%S')   # Obtenemos la fecha entrante del email.
             subject_email = message.Subject    # Obtenemos el Asunto del email entrante.
+            regex_transmittal = r'TL-\d{2,4}[A-Z0-9]+-VDC-\d{4}'
+            match = re.search(regex_transmittal, subject_email)
+            transmittal_code = match.group(0) if match else None
             subject_email = re.sub(r'[\/:*?"<>|]', '', subject_email)
-            #print(subject_email)
             message.SaveAs(subject_email + '.msg')
             text_html = message.HTMLBody    # Captura de texto email
             html_body = BeautifulSoup(text_html, "lxml")    # Captura del texto.
-            #print(html_body)
             html_tables = html_body('table')[0]    # Seleccionamos la tabla excel en el cuerpo del email.
-            #print(html_tables)
             df_list = pd.read_html(StringIO(text_html))    # Captura del email en text_html.
             df = df_list[0]    # Seleccionamos la posición [5] en la que encontramos la información y tabla del email.
-            #print(df)
             df = df.loc[:, ['Name', 'P.O.', 'Title', 'Rev', 'S.R. Status', 'Date']]    # Reorganizamos las columnas para realizar la importación correcta a BBDD.
-            #print(df)
-#            df = df.loc[:, ['Vendor Number', 'TR Number', 'Title', 'Vendor Rev', 'Return Status']]    # Reorganizamos las columnas para realizar la importación correcta a BBDD.
             df['Nº Pedido'] = df['P.O.']    # Creamos una nueva columna en la cual identificamos el Tipo de documento a traves del ['Vendor Number'].
-            #print(df['Nº Pedido'])
             prodoc_vendor_number(df)
-            #print(df['Nº Pedido'])
-            #print(df)
             df['Tipo de documento'] = df['Name']  # Creamos una nueva columna en la cual identificamos el Tipo de documento a traves del ['Vendor Number'].
             df['Tipo de documento'] = df['Tipo de documento'].str.extract(r'-(\D{2,3})(?=-\d{1,})',expand=False)  # Obtenemos el 'TIPO DE DOCUMENTO'.
-            #print(df['Tipo de documento'])
-            #print(df)
             df['Supp.'] = 'S00'  # Creamos una nueva columna en la cual identificaremos el suplemento a traves del ['Vendor Number'].
-            #df['Supp.'] = df['Supp.'].str.extract(r'([S]+\d+)', expand=False)  # Obtener numero de suplemento (S00).
             ### Reemplaza los valores de la columna "Suplemento", si el valor no se encuentra en el mapeo o es NaN, se reemplaza con 'S00'.
             reemplazar_null(df)
-            #identificar_cliente_por_PO(df)
-            #reconocer_tipo_proyecto(df)
+            df.insert(6, "Crítico", "Sí")  # Creación nuevas columnas ["Critico"] en la 6º posición del df ################## La idea sería a traves del tipo de documento indicar si es critico o no.
+            df['P.O.'] = df['P.O.'].apply(str)
+            identificar_cliente_por_PO(df)
             # Generamos una nueva columna llamada ['EMAIL'] con el Tipo de documento, el cual transformaremos para identificar el email de la persona al que va asociado el documento.
             df['EMAIL'] = df['Tipo de documento']  # Damos los datos de tipo de documento a la columna df[EMAIL]
             df2['EMAIL'] = df['EMAIL']  # Creamos un df2 con solo esta columna.
             df['EMAIL'].pop  # Eliminamos la columna.
             procesar_documento_y_fecha(df, receivedtime)
             cambiar_tipo_estado(df)
+            critico(df)
             # Renombramos las columnas al Castellano
-            df.rename(columns={'Name': 'Doc. EIPSA', 'Rev': 'Rev.', 'Title': 'Título',
-                               'TR Number': 'Name', 'S.R. Status': 'Estado', 'Rev': 'TR Rev.', 'P.O.': 'PO'},
+            df.rename(columns={'Name': 'Doc. EIPSA', 'Rev': 'Rev.', 'Title': 'Título', 'S.R. Status': 'Estado', 'Rev': 'TR Rev.', 'P.O.': 'PO'},
                       inplace=True)
+            df['Doc. Cliente'] = df['Doc. EIPSA']
+            df['Rev.'] = df['TR Rev.']
+            reconocer_tipo_proyecto(df)
+            df['Nº Transmittal'] = transmittal_code
             print(df)
-
-
-
 
 
             # Generamos la conexión con Outlook y se genera el email
@@ -119,7 +112,7 @@ while message:
             aplicar_estilos_y_guardar_excel(df_final, f'RESUMEN - ' + subject_email + '.xlsx')
             df_import = df_final.copy()  # Generamos el dataframe de IMPORTACIÓN a ERP (df_import).
             df_import = df_import.reindex(
-                ['Nº Pedido', 'Supp.', 'PO', 'Doc. EIPSA', 'Doc. Cliente', 'Título', 'Rev.', 'TR Rev.', 'Estado',
+                ['Nº Pedido', 'Supp.', 'PO', 'Doc. Cliente', 'Título', 'Rev.', 'TR Rev.', 'Estado',
                  'Fecha'], axis=1)  # Estructuramos los datos del df_import.
             # Exportar el DataFrame estilizado a HTML
             styled_df = aplicar_estilos_html(df_import)
@@ -147,7 +140,7 @@ while message:
 
             # Generamos la entrada de datos al email
             newmail.To = ';santos-sanchez@eipsa.es;' + str(df3[0][0])
-            newmail.CC = ';jesus-martinez@eipsa.es;ernesto-carrillo@eipsa.es;' + df2[0][0]
+            newmail.CC = ';jesus-martinez@eipsa.es;ernesto-carrillo@eipsa.es;' + str(df2[0][0])
             newmail.HTMLBody = ('<html><body>'
                                 '<p>Buenos días,</p>'
                                 '<p>Han devuelto la siguiente documentación:</p>'
