@@ -1,4 +1,4 @@
-# Email MAPI Automation
+# Email MAPI Automation [GAIA - PRODOC - TÉCNICAS REUNIDAS]
 
 ## Project Description
 **Email MAPI Automation** is a fully automated solution designed to process HTML tables embedded in the body of emails, modify the data, and update a database. Additionally, it generates and sends a new email with the updated data and includes a dynamically generated Excel file as an attachment.
