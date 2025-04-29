@@ -43,7 +43,7 @@ message = messages.GetFirst()    # Selección del email
 start_time = time.time()
 # Bucle captura de mensaje a través de BeautifulSoup para tabla html, bodytext y creación excel entrada BBDD
 while message:
-    if message.SenderEmailAddress != 'gaia-tpplm-prod@ten.com':
+    if message.SenderEmailAddress != '###Email###':
         message = messages.GetNext()
         continue  # Salta al siguiente email si no es del remitente deseado
     try:
