@@ -1,4 +1,4 @@
-""" Versión v1.0.0 - Automatización, envío, tratamiento de datos y entrada a BBDD para transmittals de PRODOC """
+""" Versión v1.0.0 - Automatización, envío, tratamiento de datos y entrada a BBDD para transmittals de GAIA """
 from datetime import timedelta
 # Imports
 import time
@@ -35,7 +35,7 @@ i = 0
 # Conexionado con el servidor de Outlook
 outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
 # Bandeja de entrada de Outlook, acceso y búsqueda de los últimos mensajes recibidos .Folders("carpeta")
-inbox = outlook.GetDefaultFolder(6).Folders["test1"]    # Quitar selección de carpeta
+inbox = outlook.GetDefaultFolder(6)#.Folders["test1"]    # Quitar selección de carpeta
 messages = inbox.Items.Restrict("[Unread]=true")    # Obligamos a solo buscar entre los emails que se encuentren aún sin leer
 messages.Sort("ReceivedTime", True)    # Ordenamos los mensajes según su entrada por tiempo
 message = messages.GetFirst()    # Selección del email
@@ -43,7 +43,7 @@ message = messages.GetFirst()    # Selección del email
 start_time = time.time()
 # Bucle captura de mensaje a través de BeautifulSoup para tabla html, bodytext y creación excel entrada BBDD
 while message:
-    if message.SenderEmailAddress != '###Email###':
+    if message.SenderEmailAddress != 'gaia-tpplm-prod@ten.com':
         message = messages.GetNext()
         continue  # Salta al siguiente email si no es del remitente deseado
     try:

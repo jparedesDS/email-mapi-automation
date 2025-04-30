@@ -164,11 +164,11 @@ def cambiar_tipo_estado(df):
 
     # mapping (dict): Diccionario de mapeo para identificar el estado del documento
     mapping = {
-        'Code 1': 'Com. Mayores',
+        'Code 5': 'Rechazado',
         'Code 2': 'Com. Menores',
-        'Code 3': 'Aprobado',
-        'Code 4': 'Informativo',
-        'Code 5': 'Rechazado'}
+        'Code 1': 'Aprobado',
+        'Code 3': 'Com. Mayores',
+        'Code 4': 'Informativo'}
 
     # Aplicar el mapeo para cambiar el tipo de estado en la columna 'Return Status'
     df['Estado'] = df['Estado'].map(mapping)
@@ -187,7 +187,7 @@ def email_employee(df):
     """
 
     mapping = {'PLG': '', 'DWG': '', 'CAL': '', 'ESP': '', 'CER': email_JV, 'NACE': '', 'LIS': email_JV, 'ITP': '',
-               'PRC': email_JV, 'MAN': email_JV, 'VDB': '', 'PLN': '', 'PLD': '', 'CAT': email_JV, 'DL': '', 'DOS': email_JV, 'SPL': email_JV, 'WD': ''}
+               'PRC': email_JV, 'MAN': email_JV, 'VDB': '', 'PLN': '', 'PLD': '', 'CAT': email_JV, 'DL': '', 'DOS': email_JV, 'SPL': email_JV}
 
     df['EMAIL'] = df['EMAIL'].map(mapping)
     df = df['EMAIL'].apply(pd.Series)
@@ -316,8 +316,6 @@ def get_responsable_email(numero_pedido):
     return None
 
 
-
-# APLICAR ESTILOS EXCEL
 def aplicar_estilos_y_guardar_excel(df, filename):
     # Crear un nuevo libro de trabajo y una hoja
     wb = Workbook()
@@ -430,3 +428,37 @@ def aplicar_estilo_info(df):
         .set_table_styles(estilo_header)
 
     return styled.to_html(index=False)
+
+
+
+
+##################################################################################
+
+
+
+def prodoc_vendor_number(df):
+    """
+    Función para cambiar el tipo de documento a entero y añadir la hora exacta recibida del email.
+
+    Args:
+        df (pandas.DataFrame): DataFrame que contiene las columnas 'Tipo de documento' y 'Fecha'.
+        receivedtime (datetime): Hora exacta recibida del email.
+
+    Returns:
+        pandas.DataFrame: DataFrame actualizado con el tipo de documento cambiado a entero y la hora exacta añadida.
+    """
+    # mapping (dict): Diccionario de mapeo para identificar el tipo de documento
+    mapping = {'7011318362': 'P-24/091', '7070000087': 'P-24/054',
+               '7011319592': 'P-24/073', '7011294464': 'P-23/087',
+               '600017293': 'P-23/097', '7011265051': 'P-24/006',
+               '7080111164': 'P-24/023', '7080113517': 'P-24/044',
+               '7011295889': 'P-24/050', '7080115423': 'P-24/058',
+               '7080115700': 'P-24/060'}
+
+    # Asegurar que la columna es string y eliminar espacios en blanco
+    df['Nº Pedido'] = df['Nº Pedido'].astype(str).str.strip()
+
+    # Aplicar mapeo y mantener valores originales si no están en el diccionario
+    df['Nº Pedido'] = df['Nº Pedido'].map(mapping).fillna(df['Nº Pedido'])
+
+    return df
