@@ -34,8 +34,7 @@ i = 0
 
 # Conexionado con el servidor de Outlook
 outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
-# Bandeja de entrada de Outlook, acceso y búsqueda de los últimos mensajes recibidos .Folders("carpeta")
-inbox = outlook.GetDefaultFolder(6)#.Folders["test1"]    # Quitar selección de carpeta
+inbox = outlook.GetDefaultFolder(6).Folders["test1"]    # Quitar selección de carpeta
 messages = inbox.Items.Restrict("[Unread]=true")    # Obligamos a solo buscar entre los emails que se encuentren aún sin leer
 messages.Sort("ReceivedTime", True)    # Ordenamos los mensajes según su entrada por tiempo
 message = messages.GetFirst()    # Selección del email
@@ -43,7 +42,7 @@ message = messages.GetFirst()    # Selección del email
 start_time = time.time()
 # Bucle captura de mensaje a través de BeautifulSoup para tabla html, bodytext y creación excel entrada BBDD
 while message:
-    if message.SenderEmailAddress != '#AÑADIR EMAIL#':
+    if message.SenderEmailAddress != 'gaia-tpplm-prod@ten.com':
         message = messages.GetNext()
         continue  # Salta al siguiente email si no es del remitente deseado
     try:
@@ -100,12 +99,10 @@ while message:
         ### Aplicar la función para generar la columna 'Responsable_email' ###
         df['Responsable_email'] = df['Nº Pedido'].apply(get_responsable_email)
         # Generamos la selección automática de a quien se va a enviar el email
-        mapping = {';luis-bravo@eipsa.es;': 'LB', ';ana-calvo@eipsa.es;': 'AC', ';sandra-sanz@eipsa.es;': 'SS',
-                   ';carlos-crespohor@eipsa.es;': 'CC'}
+        mapping = {';luis-bravo@eipsa.es;': 'LB', ';ana-calvo@eipsa.es;': 'AC', ';sandra-sanz@eipsa.es;': 'SS', ';carlos-crespohor@eipsa.es;': 'CC'}
         df['Responsable'] = df.apply(lambda row: mapping[row['Responsable_email']], axis=1)
         df.reset_index()  # Quitamos el index el df
-        df3 = df['Responsable_email'].apply(
-            pd.Series)  # Generamos df3 donde encontramos la información del responsable del proyecto.
+        df3 = df['Responsable_email'].apply(pd.Series)  # Generamos df3 donde encontramos la información del responsable del proyecto.
         df_final = pd.concat([df, df3], axis=1)  # Se une la columna ['Responsable_email'] al df_final.
         # Estructuramos los datos del df_final
         df_final = df_final.reindex(
@@ -115,8 +112,7 @@ while message:
         df_final.to_excel(f'RESUMEN - ' + subject_email + '.xlsx', index=False)  # Generamos el dataframe RESUMEN.
         aplicar_estilos_y_guardar_excel(df_final, f'RESUMEN - ' + subject_email + '.xlsx')
         df_import = df_final.copy()  # Generamos el dataframe de IMPORTACIÓN a ERP (df_import).
-        df_import = df_import.reindex(
-            ['Nº Pedido', 'Supp.', 'PO', 'Doc. Cliente', 'Título', 'Rev.', 'Estado', 'Fecha'], axis=1)  # Estructuramos los datos del df_import.
+        df_import = df_import.reindex(['Nº Pedido', 'Supp.', 'PO', 'Doc. Cliente', 'Título', 'Rev.', 'Estado', 'Fecha'], axis=1)  # Estructuramos los datos del df_import.
         # Exportar el DataFrame estilizado a HTML
         styled_df = aplicar_estilos_html(df_import)
         # Cargar datos previos del archivo Excel si existe
@@ -129,8 +125,7 @@ while message:
         # Guardar los datos combinados en el archivo Excel
         df_combined.to_excel(combine_path, index=False)
         # Exportar el DataFrame estilizado a HTML
-        df_body = df_import.drop(
-            columns=['Nº Pedido', 'Supp.', 'PO', 'Fecha'])  # Quitamos esas columnas para el cuerpo
+        df_body = df_import.drop(columns=['Nº Pedido', 'Supp.', 'PO', 'Fecha'])  # Quitamos esas columnas para el cuerpo
         df_body = aplicar_estilos_html(df_body)
         # Creamos un DataFrame con los datos superiores (Nº Pedido, Supp., PO)
         df_info = pd.DataFrame({

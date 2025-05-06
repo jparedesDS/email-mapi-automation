@@ -198,7 +198,6 @@ def cambiar_tipo_estado(df):
         '2 - WITHOUT COMMENTS': 'Aprobado',
         '2I - FOR INFORMATION ONLY ': 'Informativo',
         '3 - WITH MINOR COMMENTS': 'Com. Menores',
-        # AÑADIR PORTAL PRODOC
     }
 
     # Aplicar el mapeo para cambiar el tipo de estado en la columna 'Return Status'

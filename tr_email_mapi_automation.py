@@ -44,7 +44,7 @@ start_time = time.time()
 # Bucle captura de mensaje a través de BeautifulSoup para tabla html, bodytext y creación excel entrada BBDD
 while message:
     print(message.Subject)
-    if message.SenderEmailAddress != '#AÑADIR EMAIL#':
+    if message.SenderEmailAddress != 'egesdoc@grupotr.es':
         message = messages.GetNext()
         continue  # Salta al siguiente email si no es del remitente deseado
     try:

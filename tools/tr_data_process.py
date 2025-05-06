@@ -30,6 +30,89 @@ def reemplazar_null(df):
     return df
 
 
+def reconocer_tipo_proyecto(df):
+    """
+    Función para reconocer los 3 últimos números y modificar la columna 'TIPO' indicando qué tipo de proyecto es.
+
+    Args:
+        df (pandas.DataFrame): DataFrame que contiene la columna 'Material'.
+
+    Returns:
+        pandas.DataFrame: DataFrame actualizado con la columna 'Material' modificada.
+    """
+    # mapping (dict): Diccionario de mapeo para identificar el tipo de proyecto.
+    mapping = {'411': 'TEMPERATURA', '412': 'TEMPERATURA',
+               '610': 'BIMETÁLICOS', '640': 'TEMPERATURA',
+               '710': 'NIVEL VIDRIO', '740': 'TUBERÍAS',
+               '910': 'CAUDAL', '911': 'SALTOS MULTIPLES',
+               '920': 'ORIFICIOS'}
+
+    # Extraemos
+    df['Material'] = df['PO'].str.extract(r'(\d{3}+\Z)', expand=False)
+
+    # Reconocer los 3 últimos números y modifica la columna 'Material' usando el mapeo proporcionado
+    df['Material'] = df['Material'].str[-3:].map(mapping)
+
+    return df
+
+
+def procesar_documento_y_fecha(df, receivedtime):
+    """
+    Función para cambiar el tipo de documento a entero y añadir la hora exacta recibida del email.
+
+    Args:
+        df (pandas.DataFrame): DataFrame que contiene las columnas 'Tipo de documento' y 'Fecha'.
+        receivedtime (datetime): Hora exacta recibida del email.
+
+    Returns:
+        pandas.DataFrame: DataFrame actualizado con el tipo de documento cambiado a entero y la hora exacta añadida.
+    """
+    # mapping (dict): Diccionario de mapeo para identificar el tipo de documento
+    mapping = {'PLG': 'Planos', 'DWG': 'Planos',
+               'CAL': 'Cálculos', 'ESP': 'Cálculos y Planos',
+               'CER': 'Certificado', 'NACE': 'Certificado',
+               'DOS': 'Dossier', 'LIS': 'Listado',
+               'ITP': 'Procedimientos', 'PRC': 'Procedimientos',
+               'MAN': 'Manual', 'VDB': 'Listado',
+               'PLN': 'PPI', 'PLD': 'Nameplate',
+               'CAT': 'Catalogo', 'DL': 'Listado'}
+
+    # Cambiar el tipo de documento usando el mapeo proporcionado
+    df['Tipo de documento'] = df['Tipo de documento'].map(mapping)
+
+    # Convertir la hora exacta recibida del email a formato de fecha y hora
+    df['Fecha'] = pd.to_datetime(receivedtime, dayfirst=True)
+
+    return df
+
+
+def cambiar_tipo_estado(df):
+    """
+    Función para cambiar el tipo de estado en un DataFrame.
+
+    Args:
+        df (pandas.DataFrame): DataFrame que contiene la columna 'Return Status'.
+
+    Returns:
+        pandas.DataFrame: DataFrame actualizado con los tipos de estado modificados.
+    """
+
+    # mapping (dict): Diccionario de mapeo para identificar el estado del documento
+    mapping = {
+        'A - REJECTED': 'Rechazado',
+        'B - REVIEWED WITH MAJOR COMMENTS': 'Com. Mayores',
+        'C - REVIEWED WITH MINOR COMMENTS': 'Com. Menores',
+        'F - REVIEWED WITHOUT COMMENTS': 'Aprobado',
+        'W - ISSUED FOR CERTIFICATION': 'Certificación',
+        'M - VOID': 'Eliminado'
+        # AÑADIR PORTAL PRODOC
+    }
+
+    # Aplicar el mapeo para cambiar el tipo de estado en la columna 'Return Status'
+    df['Return Status'] = df['Return Status'].map(mapping)
+
+    return df
+
 
 def identificar_cliente_por_PO(df):
     """
@@ -87,94 +170,6 @@ def identificar_cliente_por_PO(df):
     return df
 
 
-
-def reconocer_tipo_proyecto(df):
-    """
-    Función para reconocer los 3 últimos números y modificar la columna 'TIPO' indicando qué tipo de proyecto es.
-
-    Args:
-        df (pandas.DataFrame): DataFrame que contiene la columna 'Material'.
-
-    Returns:
-        pandas.DataFrame: DataFrame actualizado con la columna 'Material' modificada.
-    """
-    # mapping (dict): Diccionario de mapeo para identificar el tipo de proyecto.
-    mapping = {'411': 'TEMPERATURA', '412': 'TEMPERATURA',
-               '610': 'BIMETÁLICOS', '640': 'TEMPERATURA',
-               '710': 'NIVEL VIDRIO', '740': 'TUBERÍAS',
-               '910': 'CAUDAL', '911': 'SALTOS MULTIPLES',
-               '920': 'ORIFICIOS'}
-
-    # Extraemos
-    df['Material'] = df['PO'].str.extract(r'(\d{3}+\Z)', expand=False)
-
-    # Reconocer los 3 últimos números y modifica la columna 'Material' usando el mapeo proporcionado
-    df['Material'] = df['Material'].str[-3:].map(mapping)
-
-    return df
-
-
-
-def procesar_documento_y_fecha(df, receivedtime):
-    """
-    Función para cambiar el tipo de documento a entero y añadir la hora exacta recibida del email.
-
-    Args:
-        df (pandas.DataFrame): DataFrame que contiene las columnas 'Tipo de documento' y 'Fecha'.
-        receivedtime (datetime): Hora exacta recibida del email.
-
-    Returns:
-        pandas.DataFrame: DataFrame actualizado con el tipo de documento cambiado a entero y la hora exacta añadida.
-    """
-    # mapping (dict): Diccionario de mapeo para identificar el tipo de documento
-    mapping = {'PLG': 'Planos', 'DWG': 'Planos',
-               'CAL': 'Cálculos', 'ESP': 'Cálculos y Planos',
-               'CER': 'Certificado', 'NACE': 'Certificado',
-               'DOS': 'Dossier', 'LIS': 'Listado',
-               'ITP': 'Procedimientos', 'PRC': 'Procedimientos',
-               'MAN': 'Manual', 'VDB': 'Listado',
-               'PLN': 'PPI', 'PLD': 'Nameplate',
-               'CAT': 'Catalogo', 'DL': 'Listado'}
-
-    # Cambiar el tipo de documento usando el mapeo proporcionado
-    df['Tipo de documento'] = df['Tipo de documento'].map(mapping)
-
-    # Convertir la hora exacta recibida del email a formato de fecha y hora
-    df['Fecha'] = pd.to_datetime(receivedtime, dayfirst=True)
-
-    return df
-
-
-
-def cambiar_tipo_estado(df):
-    """
-    Función para cambiar el tipo de estado en un DataFrame.
-
-    Args:
-        df (pandas.DataFrame): DataFrame que contiene la columna 'Return Status'.
-
-    Returns:
-        pandas.DataFrame: DataFrame actualizado con los tipos de estado modificados.
-    """
-
-    # mapping (dict): Diccionario de mapeo para identificar el estado del documento
-    mapping = {
-        'A - REJECTED': 'Rechazado',
-        'B - REVIEWED WITH MAJOR COMMENTS': 'Com. Mayores',
-        'C - REVIEWED WITH MINOR COMMENTS': 'Com. Menores',
-        'F - REVIEWED WITHOUT COMMENTS': 'Aprobado',
-        'W - ISSUED FOR CERTIFICATION': 'Certificación',
-        'M - VOID': 'Eliminado'
-        # AÑADIR PORTAL PRODOC
-    }
-
-    # Aplicar el mapeo para cambiar el tipo de estado en la columna 'Return Status'
-    df['Return Status'] = df['Return Status'].map(mapping)
-
-    return df
-
-
-
 def email_employee(df):
     """
         Función para identificar el empleado encargado del documento
@@ -192,7 +187,6 @@ def email_employee(df):
     df['EMAIL'] = df['EMAIL'].map(mapping)
     df = df['EMAIL'].apply(pd.Series)
     return df
-
 
 
 # Diccionario de mapeo para la función get_responsable_email()
@@ -303,6 +297,9 @@ def get_responsable_email(numero_pedido):
     return None
 
 
+
+
+# STYLE
 def aplicar_estilos_y_guardar_excel(df, filename):
     # Crear un nuevo libro de trabajo y una hoja
     wb = Workbook()
@@ -353,7 +350,6 @@ def aplicar_estilos_y_guardar_excel(df, filename):
     # Guardar el archivo Excel
     wb.save(filename)
 
-
 def aplicar_estilos_html(df):
     styles = {
         'fecha': 'background-color: #D4DCF4; text-align: left; font-size: 14px;',
@@ -397,7 +393,6 @@ def aplicar_estilos_html(df):
 
     # Convertir a HTML sin índice
     return styled.to_html(index=False)
-
 
 def aplicar_estilo_info(df):
     # Aplicar estilos básicos a todas las celdas

@@ -81,8 +81,7 @@ def reconocer_tipo_proyecto(df):
     Returns:
         pandas.DataFrame: DataFrame actualizado con la columna 'Material' indicando el tipo de proyecto.
     """
-    mapping = {'214726C': 'CAUDAL', '7070000087': 'TEMPERATURA',
-               }
+    mapping = {'214726C': 'CAUDAL', '7070000087': 'TEMPERATURA'}
 
     # Asignamos el tipo de proyecto según el número de pedido
     df['Material'] = df['PO'].map(mapping).fillna(df['PO'])  # Si no se encuentra en el mapeo, deja el código original
@@ -164,11 +163,11 @@ def cambiar_tipo_estado(df):
 
     # mapping (dict): Diccionario de mapeo para identificar el estado del documento
     mapping = {
-        'Code 5': 'Rechazado',
-        'Code 2': 'Com. Menores',
-        'Code 1': 'Aprobado',
-        'Code 3': 'Com. Mayores',
-        'Code 4': 'Informativo'}
+        '(COD 5)': 'Rechazado',
+        '2-REVIEW WITH COMMENTS (COD 2)': 'Com. Menores',
+        '1-NO COMMENTS (COD 1)': 'Aprobado',
+        '(COD 3)': 'Com. Mayores',
+        '4-INF ONLY (COD 4)': 'Informativo'}
 
     # Aplicar el mapeo para cambiar el tipo de estado en la columna 'Return Status'
     df['Estado'] = df['Estado'].map(mapping)
