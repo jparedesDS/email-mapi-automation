@@ -20,11 +20,11 @@ if not os.path.isdir(nombre_carpeta):
     os.mkdir(nombre_carpeta)
 
 # Ruta del archivo Excel donde se agregarán los datos
-combine_path = f'Z:\\JOSE\\02 DEVOLUCIÓN DOCUMENTACIÓN\\TECNICAS REUNIDAS\\all_tr_combine.xlsx'
+combine_path = f'Z:\\JOSE\\02 DEVOLUCIÓN DOCUMENTACIÓN\\#### ####\\all_tr_combine.xlsx'
 # Se indica la url en la que guardaremos los archivos
 cwd = os.getcwd()    # Capturamos la url de la carpeta
 src = cwd    # Capturamos la url en una variable
-dst = f'Z:\\JOSE\\02 DEVOLUCIÓN DOCUMENTACIÓN\\TECNICAS REUNIDAS\\' +str(dia)    # Generamos una url de una nueva carpeta en la que iran los .xlsx
+dst = f'Z:\\JOSE\\02 DEVOLUCIÓN DOCUMENTACIÓN\\#### ####\\' +str(dia)    # Generamos una url de una nueva carpeta en la que iran los .xlsx
 
 # Añadimos dataframes vacíos para la captura de los datos
 df = pd.DataFrame()
@@ -44,7 +44,7 @@ start_time = time.time()
 # Bucle captura de mensaje a través de BeautifulSoup para tabla html, bodytext y creación excel entrada BBDD
 while message:
     print(message.Subject)
-    if message.SenderEmailAddress != 'egesdoc@grupotr.es':
+    if message.SenderEmailAddress != '####':
         message = messages.GetNext()
         continue  # Salta al siguiente email si no es del remitente deseado
     try:
